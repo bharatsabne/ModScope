@@ -1,6 +1,6 @@
 # ModScope — Cross-Platform Modbus Diagnostic Studio
 
-[![Build and Test](https://github.com/modscope/modscope/actions/workflows/build.yml/badge.svg)](https://github.com/modscope/modscope/actions)
+[![Build and Test](https://github.com/bharatsabne/ModScope/actions/workflows/ci.yml/badge.svg)](https://github.com/bharatsabne/ModScope/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![NuGet](https://img.shields.io/badge/nuget-v1.0.0-blue)](https://www.nuget.org/packages/ModScope.ModbusMaster)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](#cross-platform-support)
@@ -60,8 +60,8 @@ ModScope.sln
 #### 2. Build & Run
 ```powershell
 # Clone and enter directory
-git clone https://github.com/modscope/modscope.git
-cd modscope
+git clone https://github.com/bharatsabne/ModScope.git
+cd ModScope
 
 # Restore packages & compile
 dotnet restore ModScope.sln
