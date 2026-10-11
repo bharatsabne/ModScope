@@ -1,0 +1,15 @@
+ModScope — Cross-Platform Modbus Diagnostic Studio
+Copyright (c) 2024-2026 Bharat and ModScope Project Contributors
+
+This product is licensed under the MIT License.
+See the LICENSE file in the project root for more information.
+
+This software includes components developed by third parties:
+- Avalonia UI (MIT License) - Copyright (c) AvaloniaUI OÜ
+- Microsoft .NET Libraries & System.IO.Ports (MIT License) - Copyright (c) Microsoft Corporation & .NET Foundation
+- CommunityToolkit.Mvvm (MIT License) - Copyright (c) Microsoft Corporation & .NET Foundation
+- CsvHelper (Apache-2.0 / MS-PL) - Copyright (c) Josh Close
+- Inter Font (SIL Open Font License 1.1) - Copyright (c) Rasmus Andersson
+- SkiaSharp / HarfBuzzSharp (MIT License) - Copyright (c) Microsoft Corporation & Google LLC
+
+For detailed third-party licenses and acknowledgments, see THIRD-PARTY-NOTICES.md.

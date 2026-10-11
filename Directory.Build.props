@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12.0</LangVersion>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    
+    <!-- Package Metadata -->
+    <Authors>Bharat &amp; ModScope Contributors</Authors>
+    <Company>ModScope Open Source Project</Company>
+    <Product>ModScope - Cross-Platform Modbus Diagnostic Studio</Product>
+    <Copyright>Copyright © 2024-2026 ModScope Contributors</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/modscope/modscope</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/modscope/modscope</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+  </PropertyGroup>
+</Project>

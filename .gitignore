@@ -1,0 +1,25 @@
+## Build and Output
+[Bb]in/
+[Oo]bj/
+artifacts/
+*.snupkg
+*.nupkg
+
+## Visual Studio & IDEs
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## OS Generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+## ModScope Runtime Settings / Logs
+modscope_settings.json
+*.log

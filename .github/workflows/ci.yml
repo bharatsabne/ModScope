@@ -1,0 +1,54 @@
+name: CI Build & Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore Dependencies
+      run: dotnet restore
+
+    - name: Build Solution
+      run: dotnet build --no-restore -c Release
+
+    - name: Execute Tests
+      run: dotnet test --no-build -c Release --verbosity normal
+
+    - name: Audit Vulnerable Dependencies
+      run: dotnet list package --vulnerable --include-transitive
+
+    - name: Audit Deprecated Dependencies
+      run: dotnet list package --deprecated
+
+    - name: Verify License & Notice Files Exist
+      shell: pwsh
+      run: |
+        $requiredFiles = @("LICENSE", "NOTICE", "COPYRIGHT.md", "THIRD-PARTY-NOTICES.md", "DEPENDENCIES.md", "CONTRIBUTING.md", "RELEASE-CHECKLIST.md")
+        foreach ($f in $requiredFiles) {
+          if (-not (Test-Path $f)) {
+            Write-Error "Missing required open-source compliance file: $f"
+            exit 1
+          }
+        }
+        Write-Host "All compliance files verified."
+
+    - name: Pack ModbusMaster NuGet Package
+      if: matrix.os == 'ubuntu-latest'
+      run: dotnet pack src/ModScope.ModbusMaster/ModScope.ModbusMaster.csproj -c Release -o ./artifacts/packages

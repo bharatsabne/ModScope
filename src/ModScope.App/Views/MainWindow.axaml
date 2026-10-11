@@ -1,0 +1,433 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ModScope.App.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1366" d:DesignHeight="768"
+        x:Class="ModScope.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding WindowTitle}"
+        Icon="/Assets/logo.ico"
+        Width="1366" Height="768"
+        MinWidth="960" MinHeight="600"
+        WindowState="Maximized"
+        WindowStartupLocation="CenterScreen"
+        Background="#14161F">
+
+    <Grid RowDefinitions="Auto, Auto, Auto, *, Auto">
+
+        <!-- LAYER 1: Top Navigation & Global Commands Bar -->
+        <Border Grid.Row="0" Background="#1E2230" Padding="12,8" BorderBrush="#2D3349" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <!-- Brand & Subtitle -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Image Source="/Assets/logo.png" Width="26" Height="26" VerticalAlignment="Center"/>
+                    <TextBlock Text="ModScope" FontSize="16" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                    <Border Background="#1E293B" CornerRadius="3" Padding="5,1" Margin="4,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Industrial Studio" FontSize="11" Foreground="#94A3B8"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Center Message / Config status indicator -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                    <Ellipse Width="6" Height="6" Fill="#10B981" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding SettingsStatusMessage}" Foreground="#94A3B8" FontSize="11" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Right Action Group: Workspace Config & Safety Switch -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <!-- Load Config Button -->
+                    <Button Command="{Binding LoadWorkspaceSettingsFromFileCommand}" Height="28" Padding="10,0"
+                            Background="#334155" Foreground="#F1F5F9" FontSize="12" ToolTip.Tip="Pick and load a custom .json workspace configuration file">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="📁" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock Text="Load Config..." VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Save Config As Button -->
+                    <Button Command="{Binding SaveWorkspaceSettingsAsCommand}" Height="28" Padding="10,0"
+                            Background="#065F46" Foreground="#ECFDF5" FontSize="12" ToolTip.Tip="Choose location and filename to save current tags and connection settings">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="💾" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock Text="Save As..." VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Quick Save Button -->
+                    <Button Command="{Binding SaveWorkspaceSettingsCommand}" Height="28" Padding="10,0"
+                            Background="#059669" Foreground="White" FontWeight="SemiBold" FontSize="12" ToolTip.Tip="Save quickly to the active configuration file">
+                        <TextBlock Text="Save" VerticalAlignment="Center"/>
+                    </Button>
+
+                    <Rectangle Width="1" Height="18" Fill="#374151" VerticalAlignment="Center" Margin="2,0"/>
+
+                    <!-- Read-Only Safety Switch -->
+                    <CheckBox IsChecked="{Binding ReadOnlyMode}" Foreground="#F59E0B" FontWeight="SemiBold"
+                              VerticalAlignment="Center" FontSize="12" ToolTip.Tip="Prevents accidental Modbus write operations to live PLCs">
+                        Read-Only Lock
+                    </CheckBox>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- LAYER 2: Industrial Connection Toolbar (Context-Adaptive for TCP / RTU / ASCII) -->
+        <Border Grid.Row="1" Background="#181B26" Padding="10,6" BorderBrush="#262A3B" BorderThickness="0,0,0,1">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+
+                    <!-- Protocol Mode Selection -->
+                    <Border Background="#212638" CornerRadius="4" Padding="6,3">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="Protocol:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12" FontWeight="Medium"/>
+                            <ComboBox SelectedItem="{Binding ConnectionType}" Width="85" Height="26" FontSize="12">
+                                <x:String>TCP</x:String>
+                                <x:String>RTU</x:String>
+                                <x:String>ASCII</x:String>
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- TCP Target Controls (Visible when TCP mode is active) -->
+                    <Border IsVisible="{Binding IsTcpMode}" Background="#212638" CornerRadius="4" Padding="6,3">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="Host IP:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12"/>
+                            <TextBox Text="{Binding TcpHost}" Width="120" Height="26" FontSize="12" VerticalContentAlignment="Center"/>
+                            <TextBlock Text="Port:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12"/>
+                            <TextBox Text="{Binding TcpPort}" Width="58" Height="26" FontSize="12" VerticalContentAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Serial Port Controls (Visible when RTU or ASCII mode is active) -->
+                    <Border IsVisible="{Binding IsSerialMode}" Background="#212638" CornerRadius="4" Padding="6,3">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="Port:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12"/>
+                            <ComboBox ItemsSource="{Binding AvailableSerialPorts}" SelectedItem="{Binding SerialPort}" Width="95" Height="26" FontSize="12"/>
+                            <Button Command="{Binding RefreshSerialPortsCommand}" Height="26" Padding="6,0" Background="#334155" FontSize="11" ToolTip.Tip="Scan for Serial COM / TTY ports">
+                                ⟳
+                            </Button>
+                            <TextBlock Text="Baud:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12" Margin="4,0,0,0"/>
+                            <ComboBox SelectedItem="{Binding BaudRate}" Width="85" Height="26" FontSize="12">
+                                <x:Int32>9600</x:Int32>
+                                <x:Int32>19200</x:Int32>
+                                <x:Int32>38400</x:Int32>
+                                <x:Int32>57600</x:Int32>
+                                <x:Int32>115200</x:Int32>
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- PLC Addressing Scheme -->
+                    <Border Background="#212638" CornerRadius="4" Padding="6,3">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="Address Mode:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12"/>
+                            <ComboBox SelectedItem="{Binding SelectedAddressFormat}" Width="165" Height="26" FontSize="12">
+                                <x:String>PLC 5-Digit (40001)</x:String>
+                                <x:String>PLC 6-Digit (400001)</x:String>
+                                <x:String>0-Based Raw (0)</x:String>
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+
+                    <Rectangle Width="1" Height="20" Fill="#2E344A" VerticalAlignment="Center"/>
+
+                    <!-- Connect / Disconnect Master Button -->
+                    <Button Command="{Binding ToggleConnectionCommand}" Height="28" Padding="14,0"
+                            Background="#0284C7" Foreground="White" FontWeight="SemiBold" FontSize="12">
+                        <TextBlock Text="{Binding ConnectionButtonText}" VerticalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Built-in Simulator Toggle -->
+                    <Button Command="{Binding ToggleSimulatorCommand}" Height="28" Padding="10,0"
+                            Background="#2A3042" Foreground="#E2E8F0" FontSize="12">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                                     Fill="{Binding IsSimulatorRunning, Converter={x:Null}}"/>
+                            <TextBlock Text="Simulator (TCP:5020)" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- LAYER 3: Responsive KPI Telemetry Strip -->
+        <Border Grid.Row="2" Background="#11131A" Padding="12,5" BorderBrush="#222634" BorderThickness="0,0,0,1">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Border Width="8" Height="8" CornerRadius="4" VerticalAlignment="Center" Background="#22C55E"/>
+                        <TextBlock Text="{Binding ConnectionStatusText}" Foreground="#CBD5E1" FontWeight="Medium" FontSize="12"/>
+                    </StackPanel>
+
+                    <Rectangle Width="1" Height="14" Fill="#2A2D3D" VerticalAlignment="Center"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                        <TextBlock Text="TX/RX Frames:" Foreground="#64748B" FontSize="12"/>
+                        <TextBlock Text="{Binding TotalFrames}" Foreground="#38BDF8" FontWeight="Bold" FontSize="12"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                        <TextBlock Text="Success Rate:" Foreground="#64748B" FontSize="12"/>
+                        <TextBlock Text="{Binding SuccessRate, StringFormat='{}{0:F1}%'}" Foreground="#22C55E" FontWeight="Bold" FontSize="12"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                        <TextBlock Text="Latency:" Foreground="#64748B" FontSize="12"/>
+                        <TextBlock Text="{Binding LatencyMs, StringFormat='{}{0:F1} ms'}" Foreground="#FCD34D" FontWeight="Bold" FontSize="12"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                        <TextBlock Text="CRC Errors:" Foreground="#64748B" FontSize="12"/>
+                        <TextBlock Text="{Binding CrcErrors}" Foreground="#EF4444" FontWeight="Bold" FontSize="12"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                        <TextBlock Text="Timeouts:" Foreground="#64748B" FontSize="12"/>
+                        <TextBlock Text="{Binding TimeoutErrors}" Foreground="#EF4444" FontWeight="Bold" FontSize="12"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- LAYER 4: Main Workspace Area -->
+        <TabControl Grid.Row="3" Background="#181A24" Margin="6" Padding="0">
+
+            <!-- TAB 1: Register Monitor & Polling -->
+            <TabItem Header="Data Monitor" FontSize="13">
+                <Grid RowDefinitions="Auto, *" Margin="4">
+
+                    <!-- Polling Controls Bar: Grouped Ergonomically -->
+                    <Border Grid.Row="0" Background="#212635" Padding="8,6" CornerRadius="4" Margin="0,0,0,6">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+
+                                <!-- Target Polling Group -->
+                                <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                    <TextBlock Text="Slave ID:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12"/>
+                                    <TextBox Text="{Binding SlaveId}" Width="45" Height="26" FontSize="12" VerticalContentAlignment="Center"/>
+
+                                    <TextBlock Text="Table:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12" Margin="4,0,0,0"/>
+                                    <ComboBox SelectedItem="{Binding SelectedTableType}" Width="135" Height="26" FontSize="12">
+                                        <x:String>HoldingRegister</x:String>
+                                        <x:String>InputRegister</x:String>
+                                        <x:String>Coil</x:String>
+                                        <x:String>DiscreteInput</x:String>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <Rectangle Width="1" Height="18" Fill="#374151" VerticalAlignment="Center"/>
+
+                                <!-- Range Group -->
+                                <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                    <TextBlock Text="Start Addr:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12"/>
+                                    <TextBox Text="{Binding StartAddressText}" Width="75" Height="26" FontSize="12" VerticalContentAlignment="Center" ToolTip.Tip="PLC notation (e.g. 40001, 30001) or zero-based raw address"/>
+
+                                    <TextBlock Text="Count:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12" Margin="4,0,0,0"/>
+                                    <TextBox Text="{Binding RegisterCount}" Width="48" Height="26" FontSize="12" VerticalContentAlignment="Center"/>
+                                </StackPanel>
+
+                                <Rectangle Width="1" Height="18" Fill="#374151" VerticalAlignment="Center"/>
+
+                                <!-- Data Decoding Format Group -->
+                                <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                    <TextBlock Text="Type:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12"/>
+                                    <ComboBox SelectedItem="{Binding SelectedDisplayFormat}" Width="105" Height="26" FontSize="12">
+                                        <x:String>UInt16</x:String>
+                                        <x:String>Int16</x:String>
+                                        <x:String>Float32</x:String>
+                                        <x:String>Double64</x:String>
+                                        <x:String>Int32</x:String>
+                                        <x:String>UInt32</x:String>
+                                        <x:String>Int64</x:String>
+                                        <x:String>ASCII</x:String><!-- Hex and Binary already given in grid-->
+                                    </ComboBox>
+
+                                    <TextBlock Text="Order:" Foreground="#94A3B8" VerticalAlignment="Center" FontSize="12" Margin="4,0,0,0"/>
+                                    <ComboBox SelectedItem="{Binding SelectedEndianness}" Width="185" Height="26" FontSize="12">
+                                        <x:String>Big-Endian (ABCD / MSB-LSB)</x:String>
+                                        <x:String>Little-Endian (DCBA / LSB-MSB)</x:String>
+                                        <x:String>Word-Swap (CDAB)</x:String>
+                                        <x:String>Byte-Swap (BADC)</x:String>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <Rectangle Width="1" Height="18" Fill="#374151" VerticalAlignment="Center"/>
+
+                                <!-- Polling Action Group: Toggles between Start Polling (Blue) and Stop Polling (Red) -->
+                                <Button Command="{Binding TogglePollingCommand}" Height="26" Padding="12,0"
+                                        Background="{Binding PollingButtonBackground}" Foreground="White" FontWeight="SemiBold" FontSize="12">
+                                    <TextBlock Text="{Binding PollingButtonText}" VerticalAlignment="Center"/>
+                                </Button>
+                                <!-- <TextBlock Text="💡 Double-click Tag Name or Description cell to edit" Foreground="#64748B" FontSize="11" VerticalAlignment="Center"/> -->
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Registers DataGrid: Supports editable user tags and PLC address display -->
+                    <Border Grid.Row="1" Background="#13151D" BorderBrush="#2C3244" BorderThickness="1" CornerRadius="4">
+                        <DataGrid ItemsSource="{Binding RegisterItems}" AutoGenerateColumns="False"
+                                  GridLinesVisibility="All" HeadersVisibility="Column"
+                                  Background="Transparent">
+                            <DataGrid.Columns>
+                                <!-- PLC Formatted Address (e.g. 40001, 30001, 00001) -->
+                                <DataGridTextColumn Header="PLC Addr" Binding="{Binding PlcAddress}" IsReadOnly="True" Width="85"/>
+                                <!-- Protocol Zero-Based Address -->
+                                <DataGridTextColumn Header="Raw Addr" Binding="{Binding Address}" IsReadOnly="True" Width="75"/>
+                                <!-- User Editable Tag Name -->
+                                <DataGridTextColumn Header="Tag Name (Editable)" Binding="{Binding TagName}" IsReadOnly="False" Width="160"/>
+                                <DataGridTextColumn Header="Decoded / Formatted" Binding="{Binding FormattedValue}" IsReadOnly="True" Width="140"/>
+                                <DataGridTextColumn Header="Raw (Dec)" Binding="{Binding RawValue}" IsReadOnly="True" Width="85"/>
+                                <DataGridTextColumn Header="Hex" Binding="{Binding HexValue}" IsReadOnly="True" Width="85"/>
+                                <DataGridTextColumn Header="Binary (Bits)" Binding="{Binding BinaryValue}" IsReadOnly="True" Width="140"/>
+                                <!-- User Editable Description -->
+                                <DataGridTextColumn Header="Description (Editable)" Binding="{Binding Description}" IsReadOnly="False" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 2: Write Controls & Read-back Verification -->
+            <TabItem Header="Write &amp; Control" FontSize="13">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <Grid Margin="12" MaxWidth="720" HorizontalAlignment="Left">
+                        <Border Background="#212635" Padding="16" CornerRadius="6" BorderBrush="#2C3244" BorderThickness="1">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="Write Register / Coil (Explicit Authorization Required)" FontWeight="Bold" FontSize="15" Foreground="#38BDF8"/>
+                                <TextBlock Text="Enter either PLC notation (e.g. 40001, 00001) or raw zero-based address (e.g. 0). Writes are guarded by Read-Only Lock." Foreground="#94A3B8" TextWrapping="Wrap" FontSize="12"/>
+
+                                <Grid ColumnDefinitions="140, *" RowDefinitions="Auto, Auto, Auto" Margin="0,8">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Target Address (PLC/Raw):" VerticalAlignment="Center" Foreground="#CBD5E1" FontSize="12"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding WriteAddressText}" Width="160" Height="28" HorizontalAlignment="Left" Margin="0,4" FontSize="12"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Value to Write:" VerticalAlignment="Center" Foreground="#CBD5E1" FontSize="12"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding WriteValueText}" Width="160" Height="28" HorizontalAlignment="Left" Margin="0,4" FontSize="12"/>
+
+                                    <Button Grid.Row="2" Grid.Column="1" Command="{Binding ExecuteWriteCommand}"
+                                            Content="Authorize &amp; Execute Write" Height="32" Padding="16,0" Margin="0,10,0,0"
+                                            Background="#DC2626" Foreground="White" FontWeight="Bold" FontSize="12"/>
+                                </Grid>
+
+                                <Border Background="#13151D" Padding="10" CornerRadius="4">
+                                    <TextBlock Text="{Binding WriteStatusMessage}" Foreground="#FCD34D" TextWrapping="Wrap" FontSize="12"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 3: Raw Frame Analyzer -->
+            <TabItem Header="Frame Analyzer" FontSize="13">
+                <Grid RowDefinitions="Auto, *" Margin="4">
+                    <Border Grid.Row="0" Background="#212635" Padding="8,6" CornerRadius="4" Margin="0,0,0,6">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Command="{Binding ClearRawFramesCommand}" Content="Clear Buffer" Height="26" Padding="12,0" FontSize="12"/>
+                            <TextBlock Text="Real-time Modbus TX/RX Frame Traffic with Timestamps, CRC &amp; ASCII LRC Validation" VerticalAlignment="Center" Foreground="#94A3B8" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Background="#13151D" BorderBrush="#2C3244" BorderThickness="1" CornerRadius="4">
+                        <DataGrid ItemsSource="{Binding RawFrames}" AutoGenerateColumns="False"
+                                  IsReadOnly="True" GridLinesVisibility="All" Background="Transparent">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Timestamp (UTC)" Binding="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss.fff}'}" Width="135"/>
+                                <DataGridTextColumn Header="Dir" Binding="{Binding Direction}" Width="55"/>
+                                <DataGridTextColumn Header="Len" Binding="{Binding Length}" Width="55"/>
+                                <DataGridTextColumn Header="Raw Bytes / Frame" Binding="{Binding HexString}" Width="280"/>
+                                <DataGridTextColumn Header="Frame Interpretation" Binding="{Binding Description}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 4: Device Discovery -->
+            <TabItem Header="Device Discovery" FontSize="13">
+                <Grid RowDefinitions="Auto, *" Margin="4">
+                    <Border Grid.Row="0" Background="#212635" Padding="8,6" CornerRadius="4" Margin="0,0,0,6">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Button Command="{Binding StartDeviceDiscoveryCommand}" Content="Scan Bus (IDs 1-16)" Height="26" Padding="12,0" Background="#0284C7" Foreground="White" FontSize="12"/>
+                                <ProgressBar Value="{Binding DiscoveryProgress}" Width="150" Height="18" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding DiscoveryStatus}" VerticalAlignment="Center" Foreground="#CBD5E1" FontSize="12"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <Border Grid.Row="1" Background="#13151D" BorderBrush="#2C3244" BorderThickness="1" CornerRadius="4">
+                        <DataGrid ItemsSource="{Binding DiscoveredDevices}" AutoGenerateColumns="False"
+                                  IsReadOnly="True" GridLinesVisibility="All" Background="Transparent">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Slave ID" Binding="{Binding SlaveId}" Width="85"/>
+                                <DataGridTextColumn Header="Responded" Binding="{Binding Responded}" Width="100"/>
+                                <DataGridTextColumn Header="Identified Device" Binding="{Binding DeviceType}" Width="280"/>
+                                <DataGridTextColumn Header="Latency (ms)" Binding="{Binding ResponseTime.TotalMilliseconds, StringFormat='{}{0:F1} ms'}" Width="110"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 5: Automated Test Sequences -->
+            <TabItem Header="Commissioning Sequences" FontSize="13">
+                <Grid RowDefinitions="Auto, *" Margin="4">
+                    <Border Grid.Row="0" Background="#212635" Padding="8,6" CornerRadius="4" Margin="0,0,0,6">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Button Command="{Binding RunCommissioningSequenceCommand}" Content="Run Commissioning Sequence" Height="26" Padding="12,0" Background="#16A34A" Foreground="White" FontWeight="Bold" FontSize="12"/>
+                                <TextBlock Text="Executes multi-step verification: health ping, coil read check, and read-back verification." VerticalAlignment="Center" Foreground="#94A3B8" FontSize="12"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <Border Grid.Row="1" Background="#13151D" BorderBrush="#2C3244" BorderThickness="1" CornerRadius="4">
+                        <DataGrid ItemsSource="{Binding SequenceSteps}" AutoGenerateColumns="False"
+                                  IsReadOnly="True" GridLinesVisibility="All" Background="Transparent">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Step #" Binding="{Binding StepNumber}" Width="65"/>
+                                <DataGridTextColumn Header="Step Name" Binding="{Binding Name}" Width="220"/>
+                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="280"/>
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                                <DataGridTextColumn Header="Duration" Binding="{Binding Duration.TotalMilliseconds, StringFormat='{}{0:F0} ms'}" Width="90"/>
+                                <DataGridTextColumn Header="Result Message" Binding="{Binding ResultMessage}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 6: Audit History -->
+            <TabItem Header="Audit History" FontSize="13">
+                <Grid Margin="4">
+                    <Border Background="#13151D" BorderBrush="#2C3244" BorderThickness="1" CornerRadius="4">
+                        <DataGrid ItemsSource="{Binding AuditLogs}" AutoGenerateColumns="False"
+                                  IsReadOnly="True" GridLinesVisibility="All" Background="Transparent">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Timestamp (UTC)" Binding="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss.fff}'}" Width="150"/>
+                                <DataGridTextColumn Header="Operator" Binding="{Binding OperatorName}" Width="120"/>
+                                <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="140"/>
+                                <DataGridTextColumn Header="Slave ID" Binding="{Binding SlaveId}" Width="75"/>
+                                <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="80"/>
+                                <DataGridTextColumn Header="New Value" Binding="{Binding NewValue}" Width="100"/>
+                                <DataGridTextColumn Header="Success" Binding="{Binding Success}" Width="80"/>
+                                <DataGridTextColumn Header="Verification Notes" Binding="{Binding Notes}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- LAYER 5: Status Bar -->
+        <Border Grid.Row="4" Background="#11131A" Padding="12,5" BorderBrush="#222634" BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <TextBlock Grid.Column="0" Text="ModScope v1.0.0 | Modbus TCP, RTU &amp; ASCII | Standard PLC 00001/10001/30001/40001"
+                           Foreground="#64748B" FontSize="11" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Text="{Binding CurrentSettingsFilePath, StringFormat='Active File: {0}'}"
+                           Foreground="#64748B" FontSize="11" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
